@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCCC Admin — Complaint Management</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --bg4:#30363d;
+  --border:#30363d;
+  --border2:#444c56;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --text3:#6e7681;
+  --green:#238636;
+  --green2:#2ea043;
+  --green-glow:rgba(35,134,54,0.15);
+  --green-text:#3fb950;
+  --gold:#d29922;
+  --gold-bg:rgba(210,153,34,0.12);
+  --red:#da3633;
+  --red-bg:rgba(218,54,51,0.12);
+  --red-text:#f85149;
+  --blue:#1f6feb;
+  --blue-bg:rgba(31,111,235,0.12);
+  --blue-text:#58a6ff;
+  --orange:#d1742f;
+  --orange-bg:rgba(209,116,47,0.12);
+  --orange-text:#e3b341;
+  --purple:#8957e5;
+  --purple-bg:rgba(137,87,229,0.12);
+  --purple-text:#bc8cff;
+  --radius:8px;
+  --radius-lg:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:0}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:400px;box-shadow:0 16px 48px rgba(0,0,0,0.5)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo-icon{width:60px;height:60px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px}
+.login-logo h2{font-size:20px;font-weight:700;color:var(--text)}
+.login-logo p{font-size:13px;color:var(--text2);margin-top:2px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+.login-field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.15s}
+.login-field input:focus{border-color:var(--green2)}
+.login-hint{font-size:11px;color:var(--text3);margin-top:4px}
+.btn-login{width:100%;background:var(--green);color:white;border:none;padding:12px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:background 0.15s}
+.btn-login:hover{background:var(--green2)}
+.login-error{background:var(--red-bg);border:1px solid var(--red);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--red-text);margin-bottom:16px;display:none}
+
+/* LAYOUT */
+#appShell{display:none}
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-logo-icon{width:36px;height:36px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sidebar-logo-text h1{font-size:14px;font-weight:700;color:var(--text)}
+.sidebar-logo-text p{font-size:11px;color:var(--text2)}
+.sidebar-nav{padding:12px 8px;flex:1}
+.nav-section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13.5px;font-weight:500;transition:background 0.12s,color 0.12s;margin-bottom:2px;position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--green-glow);color:var(--green-text);border:1px solid rgba(63,185,80,0.2)}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px}
+.nav-badge.gold{background:var(--gold)}
+.sidebar-user{padding:14px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--text)}
+.user-role{font-size:11px;color:var(--text3)}
+.btn-logout{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;transition:color 0.12s}
+.btn-logout:hover{color:var(--red-text)}
+
+/* MAIN */
+.main-area{overflow-y:auto;height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text);flex:1}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 12px;width:280px}
+.topbar-search input{background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px;width:100%}
+.topbar-search input::placeholder{color:var(--text3)}
+.topbar-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:6px 14px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color 0.12s,color 0.12s}
+.topbar-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* PAGES */
+.page{display:none;padding:24px}
+.page.active{display:block}
+
+/* STATS CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.stat-num{font-size:28px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace}
+.stat-change{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-change.up{color:var(--green-text)}
+.stat-change.down{color:var(--red-text)}
+
+/* SECTION HEADER */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:700;color:var(--text)}
+.section-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* FILTERS */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 14px;border-radius:100px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s}
+.filter-btn:hover{border-color:var(--border2);color:var(--text)}
+.filter-btn.active{background:var(--green-glow);border-color:rgba(63,185,80,0.4);color:var(--green-text)}
+.filter-select{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:6px;font-family:inherit;font-size:12px;outline:none;cursor:pointer}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.complaints-table{width:100%;border-collapse:collapse}
+.complaints-table th{background:var(--bg3);padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+.complaints-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+.complaints-table tr:last-child td{border-bottom:none}
+.complaints-table tr:hover td{background:rgba(255,255,255,0.02);cursor:pointer}
+.ref-code{font-family:'DM Mono',monospace;font-size:12px;color:var(--blue-text);font-weight:500}
+.complainant{font-weight:600;color:var(--text)}
+.complainant-sub{font-size:11px;color:var(--text2);margin-top:1px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-new{background:var(--blue-bg);color:var(--blue-text)}
+.badge-reviewing{background:var(--gold-bg);color:var(--orange-text)}
+.badge-investigating{background:var(--purple-bg);color:var(--purple-text)}
+.badge-resolved{background:var(--green-glow);color:var(--green-text)}
+.badge-closed{background:var(--bg4);color:var(--text3)}
+.badge-urgent{background:var(--red-bg);color:var(--red-text)}
+
+.crime-tag{background:var(--bg4);color:var(--text2);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+
+/* PRIORITY DOT */
+.priority{display:flex;align-items:center;gap:6px;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-high{background:var(--red-text)}
+.dot-med{background:var(--orange-text)}
+.dot-low{background:var(--green-text)}
+
+/* AMOUNT */
+.amount{font-family:'DM Mono',monospace;font-size:12px;color:var(--red-text);font-weight:500}
+
+/* ACTION BTNS */
+.row-actions{display:flex;gap:6px}
+.btn-sm{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.btn-sm:hover{border-color:var(--border2);color:var(--text)}
+.btn-sm.green{border-color:rgba(63,185,80,0.3);color:var(--green-text)}
+.btn-sm.green:hover{background:var(--green-glow)}
+.btn-sm.red{border-color:rgba(248,81,73,0.3);color:var(--red-text)}
+.btn-sm.red:hover{background:var(--red-bg)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1px solid var(--border)}
+.page-info{font-size:12px;color:var(--text2)}
+.page-btns{display:flex;gap:6px}
+.page-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:5px;font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.12s}
+.page-btn:hover,
+.page-btn.active{background:var(--green-glow);border-color:rgba(63,185,80,0.4);color:var(--green-text)}
+
+/* DETAIL PANEL */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:flex-start;justify-content:flex-end}
+.detail-overlay.show{display:flex}
+.detail-panel{background:var(--bg2);border-left:1px solid var(--border);width:100%;max-width:560px;height:100vh;overflow-y:auto;animation:slideIn 0.2s ease-out}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.detail-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.detail-header h3{font-size:16px;font-weight:700}
+.btn-close-panel{background:var(--bg3);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.detail-body{padding:24px}
+.detail-section{margin-bottom:24px}
+.detail-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.detail-field label{font-size:11px;color:var(--text3);font-weight:600;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px}
+.detail-field span{font-size:13px;color:var(--text);font-weight:500}
+.detail-desc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:13px;color:var(--text2);line-height:1.65}
+.status-update{margin-top:16px}
+.status-update label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px}
+.status-update select,
+.status-update textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;margin-bottom:10px}
+.status-update textarea{resize:vertical;min-height:80px}
+.btn-update{background:var(--green);color:white;border:none;padding:10px 20px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.12s}
+.btn-update:hover{background:var(--green2)}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;position:relative}
+.tl-col{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0}
+.tl-dot{width:20px;height:20px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;z-index:1;flex-shrink:0}
+.tl-line{width:2px;flex:1;background:var(--border);min-height:20px}
+.tl-item:last-child .tl-line{display:none}
+.tl-content{padding:2px 0 20px}
+.tl-title{font-size:13px;font-weight:600;color:var(--text)}
+.tl-time{font-size:11px;color:var(--text3);margin-top:2px}
+.tl-note{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* CHARTS PAGE */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.chart-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{font-size:12px;color:var(--text2);width:130px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:20px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.8s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.bar-val{font-size:11px;font-weight:700;color:white}
+.donut-wrap{display:flex;gap:20px;align-items:center}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.4}
+.empty-state p{font-size:14px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--green);color:var(--green-text);padding:12px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;z-index:999;animation:fadeInUp 0.2s ease;display:none}
+.toast.show{display:block}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🛡️</div>
+      <h2>NCCC Admin Portal</h2>
+      <p>Nigeria Cybercrime Complaint Centre</p>
+    </div>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin" value="admin">
+      <p class="login-hint">Default: admin</p>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" value="nccc2026">
+      <p class="login-hint">Default: nccc2026</p>
+    </div>
+    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">
+        <h1>NCCC Admin</h1>
+        <p>NPF Cybercrime Unit</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('complaints',this)">
+        <span class="nav-icon">📋</span> All Complaints
+        <span class="nav-badge" id="newBadge">3</span>
+      </div>
+      <div class="nav-item" onclick="showPage('urgent',this)">
+        <span class="nav-icon">🚨</span> Urgent Cases
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Manage</div>
+      <div class="nav-item" onclick="showPage('analytics',this)">
+        <span class="nav-icon">📈</span> Analytics
+      </div>
+      <div class="nav-item" onclick="showPage('officers',this)">
+        <span class="nav-icon">👮</span> Officers
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Settings</div>
+      <div class="nav-item" onclick="showPage('settings',this)">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">AO</div>
+      <div class="user-info">
+        <div class="user-name">Adm. Ogundimu</div>
+        <div class="user-role">Super Admin · Lagos Unit</div>
+      </div>
+      <button class="btn-logout" title="Sign out" onclick="doLogout()">⏻</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-search">
+        <span style="color:var(--text3)">🔍</span>
+        <input type="text" placeholder="Search complaints, names, refs…" oninput="searchComplaints(this.value)">
+      </div>
+      <button class="topbar-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="topbar-btn" style="background:var(--green);border-color:var(--green);color:white;" onclick="showPage('complaints',null)">📋 View All</button>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-label">Total Complaints</div>
+            <div class="stat-icon" style="background:var(--blue-bg)">📋</div>
+          </div>
+          <div class="stat-num">47</div>
+          <div class="stat-change up">↑ 12 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-label">New (Unread)</div>
+            <div class="stat-icon" style="background:var(--red-bg)">🔔</div>
+          </div>
+          <div class="stat-num">3</div>
+          <div class="stat-change">Needs immediate review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-label">Resolved</div>
+            <div class="stat-icon" style="background:var(--green-glow)">✅</div>
+          </div>
+          <div class="stat-num">29</div>
+          <div class="stat-change up">↑ 61.7% resolution rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-label">Funds Reported Lost</div>
+            <div class="stat-icon" style="background:var(--orange-bg)">💰</div>
+          </div>
+          <div class="stat-num" style="font-size:20px">₦18.4M</div>
+          <div class="stat-change down">↑ From 47 complaints</div>
+        </div>
+      </div>
+
+      <div class="section-hdr">
+        <div>
+          <div class="section-title">Recent Complaints</div>
+          <div class="section-sub">Last 10 submitted reports</div>
+        </div>
+        <button class="btn-sm green" onclick="showPage('complaints',null)">View All →</button>
+      </div>
+      <div class="table-wrap">
+        <table class="complaints-table" id="dashRecentTable"><!-- filled by JS --></table>
+      </div>
+    </div>
+
+    <!-- COMPLAINTS PAGE -->
+    <div class="page" id="page-complaints">
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterStatus('all',this)">All <span style="opacity:0.6">(47)</span></button>
+        <button class="filter-btn" onclick="filterStatus('New',this)">New <span style="opacity:0.6">(3)</span></button>
+        <button class="filter-btn" onclick="filterStatus('Reviewing',this)">Reviewing <span style="opacity:0.6">(8)</span></button>
+        <button class="filter-btn" onclick="filterStatus('Investigating',this)">Investigating <span style="opacity:0.6">(7)</span></button>
+        <button class="filter-btn" onclick="filterStatus('Resolved',this)">Resolved <span style="opacity:0.6">(29)</span></button>
+        <select class="filter-select" onchange="filterCrime(this.value)" style="margin-left:auto">
+          <option value="">All Crime Types</option>
+          <option>Online Fraud / Scam</option>
+          <option>Phishing / Identity Theft</option>
+          <option>Account Hacking</option>
+          <option>Romance Scam</option>
+          <option>Sextortion / Blackmail</option>
+          <option>Cryptocurrency Fraud</option>
+          <option>Investment / Ponzi Scam</option>
+          <option>Cyberstalking</option>
+        </select>
+        <select class="filter-select">
+          <option>All States</option>
+          <option>Lagos</option><option>Abuja</option><option>Rivers</option>
+          <option>Kano</option><option>Ogun</option><option>Delta</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="complaints-table" id="allComplaintsTable"><!-- filled by JS --></table>
+        <div class="pagination">
+          <div class="page-info">Showing 1–10 of 47 complaints</div>
+          <div class="page-btns">
+            <button class="page-btn">← Prev</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">5</button>
+            <button class="page-btn">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- URGENT PAGE -->
+    <div class="page" id="page-urgent">
+      <div style="background:var(--red-bg);border:1px solid rgba(248,81,73,0.3);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;display:flex;gap:10px;align-items:center">
+        <span style="font-size:20px">🚨</span>
+        <div>
+          <p style="font-weight:700;color:var(--red-text);font-size:14px">High Priority Cases — Immediate Action Required</p>
+          <p style="font-size:12px;color:var(--text2);margin-top:2px">These cases involve large financial losses or ongoing threats. Please assign officers immediately.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="complaints-table" id="urgentTable"><!-- filled by JS --></table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS PAGE -->
+    <div class="page" id="page-analytics">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">This Month</div><div class="stat-icon" style="background:var(--blue-bg)">📅</div></div><div class="stat-num">18</div><div class="stat-change up">↑ 28% vs last month</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Avg. Resolution Days</div><div class="stat-icon" style="background:var(--gold-bg)">⏱</div></div><div class="stat-num">4.2</div><div class="stat-change up">↓ Improved</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Anonymous Reports</div><div class="stat-icon" style="background:var(--purple-bg)">🕵️</div></div><div class="stat-num">9</div><div class="stat-change">19.1% of total</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Suspects Identified</div><div class="stat-icon" style="background:var(--green-glow)">🎯</div></div><div class="stat-num">14</div><div class="stat-change up">↑ 29.8% rate</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h4>Top Crime Types (2026)</h4>
+          <div class="bar-chart" id="crimeChart"></div>
+        </div>
+        <div class="chart-card">
+          <h4>Cases by State</h4>
+          <div class="bar-chart" id="stateChart"></div>
+        </div>
+        <div class="chart-card">
+          <h4>Case Status Breakdown</h4>
+          <div class="donut-wrap">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#21262d" stroke-width="18"/>
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#3fb950" stroke-width="18" stroke-dasharray="154 97" stroke-dashoffset="25" stroke-linecap="round"/>
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#8957e5" stroke-width="18" stroke-dasharray="44 207" stroke-dashoffset="-129" stroke-linecap="round"/>
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#d29922" stroke-width="18" stroke-dasharray="30 221" stroke-dashoffset="-173" stroke-linecap="round"/>
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#1f6feb" stroke-width="18" stroke-dasharray="23 228" stroke-dashoffset="-203" stroke-linecap="round"/>
+              <text x="55" y="51" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="700" font-family="DM Mono,monospace">47</text>
+              <text x="55" y="65" text-anchor="middle" fill="#8b949e" font-size="10">total</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div> Resolved — 29 (61.7%)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#8957e5"></div> Investigating — 7 (14.9%)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#d29922"></div> Reviewing — 8 (17.0%)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#1f6feb"></div> New — 3 (6.4%)</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4>Monthly Complaint Volume (2026)</h4>
+          <div class="bar-chart">
+            <div class="bar-row"><span class="bar-label">January</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:#1f6feb"><span class="bar-val">9</span></div></div></div>
+            <div class="bar-row"><span class="bar-label">February</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#1f6feb"><span class="bar-val">11</span></div></div></div>
+            <div class="bar-row"><span class="bar-label">March</span><div class="bar-track"><div class="bar-fill" style="width:40%;background:#1f6feb"><span class="bar-val">8</span></div></div></div>
+            <div class="bar-row"><span class="bar-label">April</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:#1f6feb"><span class="bar-val">10</span></div></div></div>
+            <div class="bar-row"><span class="bar-label">May (so far)</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:#3fb950"><span class="bar-val">9</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFICERS PAGE -->
+    <div class="page" id="page-officers">
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Total Officers</div><div class="stat-icon" style="background:var(--blue-bg)">👮</div></div><div class="stat-num">8</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Active Cases</div><div class="stat-icon" style="background:var(--gold-bg)">📂</div></div><div class="stat-num">18</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-label">Cases Resolved</div><div class="stat-icon" style="background:var(--green-glow)">✅</div></div><div class="stat-num">29</div></div>
+      </div>
+      <div class="table-wrap">
+        <table class="complaints-table">
+          <thead><tr><th>Officer Name</th><th>Badge No.</th><th>Unit</th><th>Active Cases</th><th>Resolved</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><div class="complainant">Insp. Adewale Bello</div><div class="complainant-sub">Lagos Cybercrime Unit</div></td><td class="ref-code">NPF-LC-0041</td><td><span class="crime-tag">Lagos</span></td><td><span class="badge badge-reviewing">5 active</span></td><td style="color:var(--green-text);font-weight:700">12</td><td><span class="badge badge-resolved">On Duty</span></td></tr>
+            <tr><td><div class="complainant">Sgt. Chioma Eze</div><div class="complainant-sub">Abuja Cybercrime Unit</div></td><td class="ref-code">NPF-AB-0019</td><td><span class="crime-tag">FCT Abuja</span></td><td><span class="badge badge-reviewing">3 active</span></td><td style="color:var(--green-text);font-weight:700">8</td><td><span class="badge badge-resolved">On Duty</span></td></tr>
+            <tr><td><div class="complainant">Insp. Musa Ibrahim</div><div class="complainant-sub">Kano Cybercrime Unit</div></td><td class="ref-code">NPF-KN-0007</td><td><span class="crime-tag">Kano</span></td><td><span class="badge badge-new">2 active</span></td><td style="color:var(--green-text);font-weight:700">5</td><td><span class="badge badge-resolved">On Duty</span></td></tr>
+            <tr><td><div class="complainant">Cpl. Tobi Adeyemi</div><div class="complainant-sub">Lagos Cybercrime Unit</div></td><td class="ref-code">NPF-LC-0058</td><td><span class="crime-tag">Lagos</span></td><td><span class="badge badge-new">1 active</span></td><td style="color:var(--green-text);font-weight:700">4</td><td><span class="badge badge-closed">Leave</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div style="max-width:560px">
+        <div class="chart-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px">
+          <h4 style="font-size:15px;font-weight:700;margin-bottom:20px">Admin Account Settings</h4>
+          <div class="login-field"><label>Display Name</label><input type="text" value="Adm. Ogundimu A."></div>
+          <div class="login-field"><label>Email</label><input type="email" value="admin@nccc.npf.gov.ng"></div>
+          <div class="login-field"><label>New Password</label><input type="password" placeholder="Leave blank to keep current"></div>
+          <button class="btn-update" style="margin-top:8px">Save Changes</button>
+        </div>
+        <div class="chart-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px">
+          <h4 style="font-size:15px;font-weight:700;margin-bottom:16px">Notification Settings</h4>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" checked style="accent-color:var(--green);width:16px;height:16px"> Email alerts for new complaints</label>
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" checked style="accent-color:var(--green);width:16px;height:16px"> SMS alert for urgent/high-priority cases</label>
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" style="accent-color:var(--green);width:16px;height:16px"> Daily digest report email</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-area -->
+</div><!-- end shell -->
+</div><!-- end appShell -->
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <div>
+        <h3 id="detailRef">NCCC-2026-00001</h3>
+        <div id="detailBadge" style="margin-top:4px"></div>
+      </div>
+      <button class="btn-close-panel" onclick="document.getElementById('detailOverlay').classList.remove('show')">✕</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Status updated successfully</div>
+
+<script>
+// ── DATA ──
+const complaints = [
+  {id:'NCCC-2026-00047',name:'Emeka Okafor',phone:'08034521876',email:'emeka@gmail.com',state:'Lagos',crime:'Online Fraud / Scam',platform:'WhatsApp',amount:850000,date:'2026-05-09',status:'New',priority:'high',desc:'A stranger on WhatsApp promised to double my investment. I sent ₦850,000 and they blocked me. The account name was "Blessing Traders Ltd" — GTBank acc 0123456789.'},
+  {id:'NCCC-2026-00046',name:'Ngozi Adeyemi',phone:'07012345678',email:'ngozi.a@yahoo.com',state:'Abuja',crime:'Romance Scam',platform:'Facebook',amount:1200000,date:'2026-05-08',status:'New',priority:'high',desc:'Met a man claiming to be a US Army officer on Facebook. After 3 months of chatting, he asked me to send money for "customs clearance" of a package. I sent ₦1.2M over multiple transfers.'},
+  {id:'NCCC-2026-00045',name:'Tunde Fashola',phone:'08123456789',email:'tunde.f@hotmail.com',state:'Lagos',crime:'Account Hacking',platform:'Email',amount:0,date:'2026-05-08',status:'New',priority:'med',desc:'My Gmail and Instagram accounts were hacked. The hacker is using my Instagram to scam my followers asking them to send money. I have screenshots.'},
+  {id:'NCCC-2026-00044',name:'Aisha Mohammed',phone:'07034567890',email:'aisha.m@gmail.com',state:'Kano',crime:'Investment / Ponzi Scam',platform:'Telegram',amount:500000,date:'2026-05-07',status:'Reviewing',priority:'high',desc:'Joined a Telegram investment group promising 50% returns in 7 days. I invested ₦500,000. They paid the first two rounds then the admin disappeared and the group was deleted.'},
+  {id:'NCCC-2026-00043',name:'Chidi Nwosu',phone:'08067890123',email:'chidi.n@gmail.com',state:'Enugu',crime:'Phishing / Identity Theft',platform:'Email',amount:320000,date:'2026-05-07',status:'Reviewing',priority:'med',desc:'Received an email that looked exactly like my bank (First Bank) asking me to verify my account. I clicked the link and entered my details. ₦320,000 was withdrawn the next morning.'},
+  {id:'NCCC-2026-00042',name:'Funmi Ogunleye',phone:'08156789012',email:'funmi.o@gmail.com',state:'Ogun',crime:'Sextortion / Blackmail',platform:'Instagram',amount:200000,date:'2026-05-06',status:'Investigating',priority:'high',desc:'A man on Instagram befriended me and convinced me to share private photos. He is now threatening to send them to my family and employer unless I pay ₦200,000 per week.'},
+  {id:'NCCC-2026-00041',name:'Seun Adesanya',phone:'08089012345',email:'seun.a@outlook.com',state:'Lagos',crime:'Cryptocurrency Fraud',platform:'Website',amount:3500000,date:'2026-05-05',status:'Investigating',priority:'high',desc:'Invested ₦3.5M in a crypto trading platform called "BitProfit Nigeria". The website suddenly went offline and I cannot reach anyone. URL: www.bitprofitng.com'},
+  {id:'NCCC-2026-00040',name:'Hauwa Yusuf',phone:'07045678901',email:'hauwa.y@gmail.com',state:'Kano',crime:'Cyberstalking',platform:'WhatsApp',amount:0,date:'2026-05-04',status:'Investigating',priority:'med',desc:'My ex-boyfriend is constantly creating new numbers to harass me on WhatsApp and call me at all hours. He has also created a fake social media profile using my photos.'},
+  {id:'NCCC-2026-00039',name:'Biodun Alausa',phone:'08112345678',email:'biodun.a@gmail.com',state:'Lagos',crime:'Online Job Scam',platform:'LinkedIn',amount:150000,date:'2026-05-03',status:'Reviewing',priority:'low',desc:'Was offered a "remote data entry job" on LinkedIn. They asked me to pay ₦150,000 for "training materials and registration". After payment they stopped responding.'},
+  {id:'NCCC-2026-00038',name:'Amaka Obi',phone:'08023456789',email:'amaka.o@yahoo.com',state:'Anambra',crime:'SIM Swap Fraud',platform:'Bank/USSD',amount:780000,date:'2026-05-01',status:'Resolved',priority:'med',desc:'My SIM card was swapped without my knowledge. The fraudsters then used it to reset my banking app password and transferred ₦780,000. My network provider confirmed a swap was done in Onitsha.'},
+];
+
+const crimeColors = {'Online Fraud / Scam':'#1f6feb','Romance Scam':'#e3b341','Account Hacking':'#f85149','Phishing / Identity Theft':'#d29922','Investment / Ponzi Scam':'#8957e5','Sextortion / Blackmail':'#da3633','Cryptocurrency Fraud':'#bc8cff','Cyberstalking':'#58a6ff','SIM Swap Fraud':'#3fb950','Online Job Scam':'#e3b341','BEC — Business Email Compromise':'#d1742f'};
+
+function statusBadge(s){
+  const map={New:'badge-new',Reviewing:'badge-reviewing',Investigating:'badge-investigating',Resolved:'badge-resolved',Closed:'badge-closed'};
+  return `<span class="badge ${map[s]||'badge-closed'}">${s}</span>`;
+}
+function priorityBadge(p){
+  const map={high:['dot-high','High'],med:['dot-med','Medium'],low:['dot-low','Low']};
+  const [cls,label]=map[p]||['dot-low','Low'];
+  return `<div class="priority"><div class="dot ${cls}"></div>${label}</div>`;
+}
+function fmtAmount(n){return n>0?`<span class="amount">₦${n.toLocaleString()}</span>`:`<span style="color:var(--text3);font-size:12px">None</span>`;}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});}
+
+function tableHeader(){
+  return `<thead><tr><th>Reference</th><th>Complainant</th><th>Crime Type</th><th>Amount Lost</th><th>Date</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead>`;
+}
+function tableRows(data){
+  return '<tbody>'+data.map(c=>`
+    <tr onclick="openDetail('${c.id}')">
+      <td><span class="ref-code">${c.id}</span></td>
+      <td><div class="complainant">${c.name}</div><div class="complainant-sub">${c.state} · ${c.phone}</div></td>
+      <td><span class="crime-tag">${c.crime.length>22?c.crime.slice(0,22)+'…':c.crime}</span></td>
+      <td>${fmtAmount(c.amount)}</td>
+      <td style="color:var(--text2);font-size:12px">${fmtDate(c.date)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="row-actions">
+          <button class="btn-sm green" onclick="openDetail('${c.id}')">View</button>
+          <button class="btn-sm" onclick="updateStatus('${c.id}','Investigating')">Assign</button>
+          <button class="btn-sm red" onclick="updateStatus('${c.id}','Resolved')">Resolve</button>
+        </div>
+      </td>
+    </tr>`).join('')+'</tbody>';
+}
+
+let filteredData = [...complaints];
+
+function renderTables(){
+  const dash = document.getElementById('dashRecentTable');
+  if(dash) dash.innerHTML = tableHeader()+tableRows(complaints.slice(0,8));
+  const all = document.getElementById('allComplaintsTable');
+  if(all) all.innerHTML = tableHeader()+tableRows(filteredData);
+  const urgent = document.getElementById('urgentTable');
+  if(urgent) urgent.innerHTML = tableHeader()+tableRows(complaints.filter(c=>c.priority==='high'));
+}
+
+function renderCharts(){
+  const crimes = {};
+  complaints.forEach(c=>{const k=c.crime.split('/')[0].trim();crimes[k]=(crimes[k]||0)+1;});
+  const sorted = Object.entries(crimes).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max = sorted[0][1];
+  document.getElementById('crimeChart').innerHTML = sorted.map(([k,v])=>
+    `<div class="bar-row"><span class="bar-label" title="${k}">${k.length>18?k.slice(0,18)+'…':k}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%;background:${crimeColors[k]||'#58a6ff'}"><span class="bar-val">${v}</span></div></div></div>`
+  ).join('');
+  const states = {};
+  complaints.forEach(c=>{states[c.state]=(states[c.state]||0)+1;});
+  const ss = Object.entries(states).sort((a,b)=>b[1]-a[1]);
+  const sm = ss[0][1];
+  document.getElementById('stateChart').innerHTML = ss.map(([k,v])=>
+    `<div class="bar-row"><span class="bar-label">${k}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/sm*100)}%;background:#3fb950"><span class="bar-val">${v}</span></div></div></div>`
+  ).join('');
+}
+
+// ── PAGES ──
+function showPage(name, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const titles={dashboard:'Dashboard',complaints:'All Complaints',urgent:'Urgent Cases',analytics:'Analytics & Reports',officers:'Officers',settings:'Settings'};
+  document.getElementById('pageTitle').textContent=titles[name]||name;
+  if(btn){
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelector(`.nav-item[onclick*="${name}"]`)?.classList.add('active');
+  }
+}
+
+// ── FILTERS ──
+function filterStatus(status, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filteredData = status==='all' ? [...complaints] : complaints.filter(c=>c.status===status);
+  const all = document.getElementById('allComplaintsTable');
+  if(all) all.innerHTML = tableHeader()+tableRows(filteredData);
+}
+function filterCrime(val){
+  filteredData = val ? complaints.filter(c=>c.crime.includes(val)) : [...complaints];
+  const all = document.getElementById('allComplaintsTable');
+  if(all) all.innerHTML = tableHeader()+tableRows(filteredData);
+}
+function searchComplaints(q){
+  if(!q){filteredData=[...complaints];renderTables();return;}
+  const lq=q.toLowerCase();
+  filteredData=complaints.filter(c=>c.id.toLowerCase().includes(lq)||c.name.toLowerCase().includes(lq)||c.crime.toLowerCase().includes(lq)||c.state.toLowerCase().includes(lq));
+  renderTables();
+}
+
+// ── DETAIL PANEL ──
+function openDetail(id){
+  const c = complaints.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('detailRef').textContent = c.id;
+  document.getElementById('detailBadge').innerHTML = statusBadge(c.status)+' '+priorityBadge(c.priority);
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Complainant Information</div>
+      <div class="detail-grid">
+        <div class="detail-field"><label>Full Name</label><span>${c.name}</span></div>
+        <div class="detail-field"><label>Phone</label><span>${c.phone}</span></div>
+        <div class="detail-field"><label>Email</label><span>${c.email}</span></div>
+        <div class="detail-field"><label>State</label><span>${c.state}</span></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Incident Information</div>
+      <div class="detail-grid">
+        <div class="detail-field"><label>Crime Type</label><span>${c.crime}</span></div>
+        <div class="detail-field"><label>Platform</label><span>${c.platform}</span></div>
+        <div class="detail-field"><label>Date Filed</label><span>${fmtDate(c.date)}</span></div>
+        <div class="detail-field"><label>Amount Lost</label><span>${c.amount>0?'₦'+c.amount.toLocaleString():'None reported'}</span></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="detail-field" style="margin-bottom:8px"><label>Description</label></div>
+        <div class="detail-desc">${c.desc}</div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Evidence Files</div>
+      <div style="background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);padding:16px;text-align:center;color:var(--text3);font-size:13px">No files uploaded with this complaint</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Case Timeline</div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-col"><div class="tl-dot">📥</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Complaint Received</div><div class="tl-time">${fmtDate(c.date)} — 10:42 AM</div><div class="tl-note">Auto-assigned reference number</div></div></div>
+        ${c.status!=='New'?`<div class="tl-item"><div class="tl-col"><div class="tl-dot">👁</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Under Review</div><div class="tl-time">Assigned to officer</div></div></div>`:''}
+        ${c.status==='Investigating'||c.status==='Resolved'?`<div class="tl-item"><div class="tl-col"><div class="tl-dot">🔍</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Investigation Opened</div><div class="tl-time">Active investigation</div></div></div>`:''}
+        ${c.status==='Resolved'?`<div class="tl-item"><div class="tl-col"><div class="tl-dot" style="background:var(--green)">✓</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Case Resolved</div><div class="tl-time">Closed by admin</div></div></div>`:''}
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Update Case Status</div>
+      <div class="status-update">
+        <label>Change Status</label>
+        <select id="newStatus_${c.id}">
+          <option ${c.status==='New'?'selected':''}>New</option>
+          <option ${c.status==='Reviewing'?'selected':''}>Reviewing</option>
+          <option ${c.status==='Investigating'?'selected':''}>Investigating</option>
+          <option ${c.status==='Resolved'?'selected':''}>Resolved</option>
+          <option ${c.status==='Closed'?'selected':''}>Closed</option>
+        </select>
+        <label>Assign Officer</label>
+        <select>
+          <option>— Unassigned —</option>
+          <option>Insp. Adewale Bello (Lagos)</option>
+          <option>Sgt. Chioma Eze (Abuja)</option>
+          <option>Insp. Musa Ibrahim (Kano)</option>
+        </select>
+        <label>Internal Note</label>
+        <textarea placeholder="Add an internal note or update for this case…"></textarea>
+        <button class="btn-update" onclick="updateStatusFromPanel('${c.id}')">Update Case →</button>
+        <button class="btn-sm red" style="margin-left:10px;padding:10px 16px;" onclick="document.getElementById('detailOverlay').classList.remove('show')">Close</button>
+      </div>
+    </div>`;
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+function closeDetail(e){
+  if(e.target===document.getElementById('detailOverlay'))
+    document.getElementById('detailOverlay').classList.remove('show');
+}
+
+function updateStatus(id, newStatus){
+  const c = complaints.find(x=>x.id===id);
+  if(c){c.status=newStatus;renderTables();showToast('Status updated to '+newStatus);}
+}
+
+function updateStatusFromPanel(id){
+  const sel = document.getElementById('newStatus_'+id);
+  if(sel) updateStatus(id, sel.value);
+  document.getElementById('detailOverlay').classList.remove('show');
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✓ '+msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── EXPORT ──
+function exportCSV(){
+  const rows=[['Reference','Name','Phone','Email','State','Crime Type','Amount Lost','Date','Status','Priority']];
+  complaints.forEach(c=>rows.push([c.id,c.name,c.phone,c.email,c.state,c.crime,c.amount,c.date,c.status,c.priority]));
+  const csv=rows.map(r=>r.map(x=>`"${x}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='nccc_complaints_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('CSV exported successfully');
+}
+
+// ── LOGIN ──
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  if(u==='admin'&&p==='nccc2026'){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appShell').style.display='block';
+    renderTables();
+    renderCharts();
+  } else {
+    document.getElementById('loginError').style.display='block';
+  }
+}
+function doLogout(){
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
